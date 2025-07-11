@@ -7,28 +7,29 @@ from selenium.webdriver.common.keys import Keys
 from dotenv import load_dotenv
 from keep_alive import keep_alive
 
-# Load .env
+# Load environment variables from .env
 load_dotenv()
 USERNAME = os.getenv("IG_USER")
 PASSWORD = os.getenv("IG_PASS")
 
-# Start 24/7 server (Render requirement)
+# Start web server to keep bot alive on Render
 keep_alive()
 
-# Chrome options for headless + Render fix
+# Chrome browser options
 options = webdriver.ChromeOptions()
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_argument('--disable-gpu')
 options.add_argument('--window-size=1920,1080')
-options.add_argument('--headless=new')  # ✅ Use new headless mode
-options.add_argument(f"--user-data-dir=/tmp/profile_{random.randint(1000,9999)}")  # ✅ Fix session error
+options.add_argument('--headless=new')
+options.add_argument(f"--user-data-dir=/tmp/profile_{random.randint(1000,9999)}")
+options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/114.0.0.0 Safari/537.36")
 
-# Launch browser
+# Launch Chrome browser
 driver = webdriver.Chrome(options=options)
 
-# Human typing style
+# Simulate human typing
 def type_like_human(element, text):
     for char in text:
         element.send_keys(char)
@@ -37,46 +38,50 @@ def type_like_human(element, text):
 # Login to Instagram
 def login():
     driver.get("https://www.instagram.com/accounts/login/")
-    time.sleep(5)
+    time.sleep(7)
+
     driver.find_element(By.NAME, "username").send_keys(USERNAME)
     password_input = driver.find_element(By.NAME, "password")
     type_like_human(password_input, PASSWORD)
     password_input.send_keys(Keys.ENTER)
-    time.sleep(7)
+    time.sleep(10)
 
-    # Skip Save Login
+    # Handle popups
     try:
         driver.find_element(By.XPATH, "//button[contains(text(), 'Not Now')]").click()
-        time.sleep(3)
+        time.sleep(4)
     except:
         pass
 
-    # Skip Turn on Notifications
     try:
         driver.find_element(By.XPATH, "//button[contains(text(), 'Not Now')]").click()
-        time.sleep(3)
+        time.sleep(4)
     except:
         pass
 
-# Track last messages replied to
+    print("✅ Logged in, now monitoring group chats")
+
+# Store last message to avoid duplicate reply
 last_messages = {}
 
-# Monitor all group chats
+# Monitor group chats and reply
 def monitor_all_gcs():
     driver.get("https://www.instagram.com/direct/inbox/")
-    time.sleep(5)
+    time.sleep(6)
 
     gcs = driver.find_elements(By.XPATH, "//div[contains(@aria-label,'Conversation')]")
 
-    for i in range(min(10, len(gcs))):  # Check top 10 threads
+    for i in range(min(10, len(gcs))):
         try:
             gcs[i].click()
-            time.sleep(3)
+            time.sleep(5)
 
             group_name = driver.find_element(By.XPATH, "//h2").text
             messages = driver.find_elements(By.XPATH, "//div[contains(@class,'_a9zs')]/div")
             last_msg = messages[-1].text.strip() if messages else ""
             sender = driver.find_elements(By.XPATH, "//h3")[0].text.split("\n")[0]
+
+            print(f"📩 Group: {group_name}, Last message: {last_msg}")
 
             if group_name not in last_messages or last_messages[group_name] != last_msg:
                 if USERNAME.lower() not in last_msg.lower():
@@ -84,17 +89,17 @@ def monitor_all_gcs():
                     input_box.click()
                     reply_msg = f"@{sender} TERI GND FAD DUGA 🤣"
                     type_like_human(input_box, reply_msg)
-                    input_box.send_keys(Keys.ENTER)
+                    input_box.send_keys("\n")
                     print(f"✅ Replied to @{sender} in '{group_name}'")
                     last_messages[group_name] = last_msg
 
             driver.get("https://www.instagram.com/direct/inbox/")
-            time.sleep(1)
+            time.sleep(2)
 
         except Exception as e:
             print(f"⚠️ Error: {e}")
             driver.get("https://www.instagram.com/direct/inbox/")
-            time.sleep(1)
+            time.sleep(2)
 
 # Start bot
 login()
