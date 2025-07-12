@@ -4,12 +4,11 @@ import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from dotenv import load_dotenv
 from keep_alive import keep_alive
 
-# Load environment variables
-load_dotenv()
-SESSIONID = os.getenv("IG_SESSIONID")
+# ✅ Hardcoded Session ID (Paste yours here directly)
+SESSIONID = "75769536828:f5BHWSqgKAtUbX:1:AYfIcUbKHGapGJmkoPJXHWYCnAWI0xgCRs5xiJ1tqg"
+
 # Start Flask web server for Render
 keep_alive()
 
@@ -27,7 +26,7 @@ options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chr
 # Launch Chrome
 driver = webdriver.Chrome(options=options)
 
-# Human typing
+# Simulate human typing
 def type_like_human(element, text):
     for char in text:
         element.send_keys(char)
