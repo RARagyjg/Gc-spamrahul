@@ -1,18 +1,17 @@
 import time
-import os
 import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from keep_alive import keep_alive
 
-# ✅ Hardcoded Session ID (Paste yours here directly)
+# ✅ Your IG Session ID (safe direct embed)
 SESSIONID = "75769536828%3ARDyzXelWw6LjCB%3A18%3AAYezgAJ7qAahH1LxhmmvvgYyyBHJgt7U8hfpJCkDrw"
 
 # Start Flask web server for Render
 keep_alive()
 
-# Chrome browser setup (headless + humanized)
+# Chrome browser options (headless + anti-bot)
 options = webdriver.ChromeOptions()
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
@@ -23,28 +22,28 @@ options.add_argument('--headless=new')
 options.add_argument(f"--user-data-dir=/tmp/profile_{random.randint(1000,9999)}")
 options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/114.0.0.0 Safari/537.36")
 
-# Launch Chrome
+# Start Chrome
 driver = webdriver.Chrome(options=options)
 
-# Simulate human typing
+# Human typing function
 def type_like_human(element, text):
     for char in text:
         element.send_keys(char)
         time.sleep(random.uniform(0.03, 0.08))
 
-# Login using session cookie (no detection)
+# Login using session cookie
 def login_with_cookie():
     driver.get("https://www.instagram.com/")
-    driver.add_cookie({"name": "sessionid", "value": SESSIONID})
-    time.sleep(2)
+    driver.delete_all_cookies()
+    driver.add_cookie({"name": "sessionid", "value": SESSIONID, "domain": ".instagram.com"})
     driver.get("https://www.instagram.com/direct/inbox/")
     time.sleep(6)
     print("✅ Logged in using session cookie")
 
-# Track last messages
+# Store last message of each GC
 last_messages = {}
 
-# Monitor and auto reply to all group chats
+# Monitor and auto-reply to group chats
 def monitor_all_gcs():
     driver.get("https://www.instagram.com/direct/inbox/")
     time.sleep(6)
@@ -80,7 +79,7 @@ def monitor_all_gcs():
             driver.get("https://www.instagram.com/direct/inbox/")
             time.sleep(2)
 
-# Start bot
+# ✅ Start bot
 login_with_cookie()
 while True:
     monitor_all_gcs()
