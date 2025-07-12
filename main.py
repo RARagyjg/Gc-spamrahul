@@ -9,8 +9,7 @@ from keep_alive import keep_alive
 
 # Load environment variables
 load_dotenv()
-SESSIONID = os.getenv("75769536828%3Af5BHWSqgKAtUbX%3A1%3AAYfIcUbKHGapGJmkoPJXHWYCnAWI0xgCRs5xiJ1tqg")
-
+SESSIONID = os.getenv("IG_SESSIONID")
 # Start Flask web server for Render
 keep_alive()
 
