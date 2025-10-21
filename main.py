@@ -1,86 +1,67 @@
+from keep_alive import keep_alive
+from instagrapi import Client
 import time
 import random
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from keep_alive import keep_alive
+import uuid
+import itertools
 
-# ✅ Your IG Session ID (safe direct embed)
-SESSIONID = "75769536828%3ARDyzXelWw6LjCB%3A18%3AAYezgAJ7qAahH1LxhmmvvgYyyBHJgt7U8hfpJCkDrw"
-
-# Start Flask web server for Render
+# 🔄 Start keep-alive for Render/Replit
 keep_alive()
 
-# Chrome browser options (headless + anti-bot)
-options = webdriver.ChromeOptions()
-options.add_argument('--no-sandbox')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument('--disable-blink-features=AutomationControlled')
-options.add_argument('--disable-gpu')
-options.add_argument('--window-size=1920,1080')
-options.add_argument('--headless=new')
-options.add_argument(f"--user-data-dir=/tmp/profile_{random.randint(1000,9999)}")
-options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/114.0.0.0 Safari/537.36")
+# 🔐 Login with session ID
+cl = Client()
+cl.login_by_sessionid("77802598284%3A38M5A0SzWLcqvw%3A4%3AAYh6yiKD0u0La8-wTM9or8oEUlyPtirD7zhGa63XoQ")
 
-# Start Chrome
-driver = webdriver.Chrome(options=options)
+# 💬 Message templates (unchanged)
+reply_templates = [
+    ("OMA  L9 PE_____// " * 20).strip(),
+    ("BHAG MATT____////// " * 20).strip(),
+    ("TERYY GND FADU BACHE ______/// " * 18).strip(),
+    ("CHAL DUMM LAGA HAHAHAAH __///// " * 18).strip()
+]
 
-# Human typing function
-def type_like_human(element, text):
-    for char in text:
-        element.send_keys(char)
-        time.sleep(random.uniform(0.03, 0.08))
+# 🔁 Cycle for rotating messages
+msg_cycle = itertools.cycle(reply_templates)
 
-# Login using session cookie
-def login_with_cookie():
-    driver.get("https://www.instagram.com/")
-    driver.delete_all_cookies()
-    driver.add_cookie({"name": "sessionid", "value": SESSIONID, "domain": ".instagram.com"})
-    driver.get("https://www.instagram.com/direct/inbox/")
-    time.sleep(6)
-    print("✅ Logged in using session cookie")
+# 🧠 Always pick the latest (top) group chat
+def get_gc_thread_id():
+    threads = cl.direct_threads(amount=5)
+    for thread in threads:
+        if thread.is_group:
+            return thread.id
+    return None
 
-# Store last message of each GC
-last_messages = {}
+# ✨ Char-by-char simulate function (just delay logic)
+def simulate_typing_effect(message):
+    simulated = ""
+    for char in message:
+        simulated += char
+        time.sleep(random.uniform(0.01, 0.04))  # Typing effect
+    return simulated
 
-# Monitor and auto-reply to group chats
-def monitor_all_gcs():
-    driver.get("https://www.instagram.com/direct/inbox/")
-    time.sleep(6)
+# 🚀 Start spamming with typing effect
+def start_gc_autospam():
+    while True:
+        gc_thread_id = get_gc_thread_id()
+        if not gc_thread_id:
+            print("❌ Group chat not found.")
+            time.sleep(30)
+            continue
 
-    gcs = driver.find_elements(By.XPATH, "//div[contains(@aria-label,'Conversation')]")
-
-    for i in range(min(10, len(gcs))):
         try:
-            gcs[i].click()
-            time.sleep(5)
+            msg_base = next(msg_cycle)
+            unique_msg = f"{msg_base}\n\nID: {uuid.uuid4()}"
+            final_msg = simulate_typing_effect(unique_msg)
 
-            group_name = driver.find_element(By.XPATH, "//h2").text
-            messages = driver.find_elements(By.XPATH, "//div[contains(@class,'_a9zs')]/div")
-            last_msg = messages[-1].text.strip() if messages else ""
-            sender = driver.find_elements(By.XPATH, "//h3")[0].text.split("\n")[0]
+            cl.direct_answer(gc_thread_id, final_msg)
+            print(f"✔️ Sent: {final_msg[:40]}...")
 
-            print(f"📨 Group: {group_name} | Last: {last_msg}")
-
-            if group_name not in last_messages or last_messages[group_name] != last_msg:
-                input_box = driver.find_element(By.TAG_NAME, "textarea")
-                input_box.click()
-                reply_msg = f"@{sender} TERI GND FAD DUGA 🤣"
-                type_like_human(input_box, reply_msg)
-                input_box.send_keys(Keys.ENTER)
-                print(f"✅ Replied to @{sender} in '{group_name}'")
-                last_messages[group_name] = last_msg
-
-            driver.get("https://www.instagram.com/direct/inbox/")
-            time.sleep(2)
+            delay = random.randint(25, 40)  # Safe human delay
+            time.sleep(delay)
 
         except Exception as e:
             print(f"⚠️ Error: {e}")
-            driver.get("https://www.instagram.com/direct/inbox/")
-            time.sleep(2)
+            time.sleep(60)
 
-# ✅ Start bot
-login_with_cookie()
-while True:
-    monitor_all_gcs()
-    time.sleep(1)
+# ▶️ Run spammer
+start_gc_autospam()
